@@ -14,6 +14,7 @@
 #include "fatalsrv/IService.h"
 #include "hid/IHidServer.h"
 #include "timesrv/IStaticService.h"
+#include "timesrv/timesrv.h"
 #include "fssrv/IFileSystemProxy.h"
 #include "services/nvdrv/INvDrvServices.h"
 #include "visrv/IManagerRootService.h"
@@ -38,7 +39,13 @@
         }
 
 namespace skyline::service {
-    ServiceManager::ServiceManager(const DeviceState &state) : state(state), smUserInterface(std::make_shared<sm::IUserInterface>(state, *this)) {}
+    struct GlobalServiceState {
+        timesrv::core::TimeService timesrv;
+
+        GlobalServiceState(const DeviceState &state) : timesrv(state) {}
+    };
+
+    ServiceManager::ServiceManager(const DeviceState &state) : state(state), smUserInterface(std::make_shared<sm::IUserInterface>(state, *this)), globalServiceState(std::make_shared<GlobalServiceState>(state)) {}
 
     std::shared_ptr<BaseService> ServiceManager::CreateService(ServiceName name) {
         auto serviceIter{serviceMap.find(name)};
